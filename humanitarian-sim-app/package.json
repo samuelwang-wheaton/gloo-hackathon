@@ -1,0 +1,20 @@
+{
+  "name": "tearfund-wps-simulation-mvp",
+  "version": "1.0.0",
+  "description": "Humanitarian leadership simulation (Tearfund_WPS_Simulation_MVP Airtable base).",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "airtable": "^0.12.2",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "method-override": "^3.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

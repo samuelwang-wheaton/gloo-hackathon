@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="app-background">
+  <main class="dashboard-shell">
+    <header class="dashboard-header student-header">
+      <div>
+        <div class="section-kicker">Student Dashboard</div>
+        <h1>Lead with Faith Under Pressure</h1>
+        <p>
+          Welcome, <strong><%= participant.Name %></strong>. You are serving as
+          <strong><%= participant.Role %></strong>.
+        </p>
+      </div>
+
+      <div class="countdown-card">
+        <span>Simulation Window</span>
+        <strong>90:00</strong>
+      </div>
+    </header>
+
+    <% if (!data.session) { %>
+      <section class="warning-panel">
+        <h2>Session unavailable</h2>
+        <p>Please contact your facilitator.</p>
+      </section>
+    <% } else { %>
+
+    <section class="student-layout">
+      <aside class="stack">
+        <section class="panel role-card">
+          <div class="section-kicker">Role Card</div>
+          <h2>Tearfund Country Response Lead</h2>
+
+          <div class="role-section">
+            <strong>Public Goal</strong>
+            <p>
+              Lead Tearfund’s emergency response and represent Tearfund to local church partners,
+              women-led organizations, county authorities, UN coordination structures, donors,
+              and affected communities.
+            </p>
+          </div>
+
+          <div class="role-section">
+            <strong>Private Concern</strong>
+            <p>
+              You must balance donor compliance, survivor safety, church relationships,
+              localization, access, and justice while making decisions with incomplete information.
+            </p>
+          </div>
+
+          <div class="role-section">
+            <strong>Constraints</strong>
+            <ul>
+              <li>Limited time and incomplete field information</li>
+              <li>Pressure from donors, authorities, and community leaders</li>
+              <li>Women, Peace and Security priorities in South Sudan</li>
+              <li>Protection, PSEA, and accountability obligations</li>
+            </ul>
+          </div>
+
+          <div class="role-section">
+            <strong>Theological Tension</strong>
+            <p>
+              How should Tearfund’s identity shape crisis leadership when reputation,
+              operational speed, truth, justice, humility, and compassion are in tension?
+            </p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Progress Tracker</h2>
+
+          <% const completedCount = completedScenarioIds.length; %>
+          <% const totalScenarios = data.scenarios.length || 1; %>
+          <% const progress = Math.round((completedCount / totalScenarios) * 100); %>
+
+          <div class="progress-meta">
+            <span><%= completedCount %> of <%= totalScenarios %> scenarios complete</span>
+            <strong><%= progress %>%</strong>
+          </div>
+
+          <div class="progress-bar">
+            <div style="width: <%= progress %>%"></div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="stack">
+        <section class="panel crisis-panel">
+          <div class="panel-header">
+            <div>
+              <div class="section-kicker">Current Scenario</div>
+              <h2>
+                <% if (data.currentScenario) { %>
+                  <%= data.currentScenario.Title %>
+                <% } else { %>
+                  Waiting for scenario
+                <% } %>
+              </h2>
+            </div>
+
+            <span class="status-pill">
+              Scenario <%= data.session["Current Scenario Number"] || 1 %>
+            </span>
+          </div>
+
+          <% if (data.currentScenario) { %>
+            <p class="scenario-background"><%= data.currentScenario.Background %></p>
+
+            <div class="message-grid">
+              <% [
+                data.currentScenario["Stakeholder Message 1"],
+                data.currentScenario["Stakeholder Message 2"],
+                data.currentScenario["Stakeholder Message 3"],
+                data.currentScenario["Stakeholder Message 4"]
+              ].filter(Boolean).forEach((message, index) => { %>
+                <article class="stakeholder-message">
+                  <strong>Stakeholder Message <%= index + 1 %></strong>
+                  <p><%= message %></p>
+                </article>
+              <% }) %>
+            </div>
+          <% } %>
+        </section>
+
+        <section class="panel inject-panel">
+          <h2>Crisis Inject Display</h2>
+
+          <% if (releasedInjects.length === 0) { %>
+            <p class="muted-text">
+              No inject has been released yet. Wait for your facilitator.
+            </p>
+          <% } %>
+
+          <% releasedInjects.forEach(inject => { %>
+            <article class="released-inject">
+              <span class="status-pill"><%= inject.Status %></span>
+              <h3><%= inject["Inject Title"] %></h3>
+              <p><%= inject["Inject Content"] %></p>
+            </article>
+          <% }) %>
+        </section>
+
+        <section class="panel">
+          <h2>Interactive Decision Choices</h2>
+          <p class="muted-text">
+            Choose a strategic direction, then explain your rationale and reflection below.
+          </p>
+
+          <div class="choice-grid">
+            <label class="choice-card">
+              <input type="radio" name="choice-preview" value="protect" />
+              <strong>Prioritize Protection</strong>
+              <span>Slow the response if necessary to reduce harm and uphold survivor safety.</span>
+            </label>
+
+            <label class="choice-card">
+              <input type="radio" name="choice-preview" value="coordinate" />
+              <strong>Prioritize Coordination</strong>
+              <span>Align with UN, county, church, and donor systems to preserve access.</span>
+            </label>
+
+            <label class="choice-card">
+              <input type="radio" name="choice-preview" value="localize" />
+              <strong>Prioritize Localization</strong>
+              <span>Shift power and resources toward women-led organizations and local partners.</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Decision Submission</h2>
+
+          <form
+            action="/student/<%= participant.airtableId %>/decision"
+            method="POST"
+            class="form-stack"
+          >
+            <input type="hidden" name="sessionId" value="<%= data.session.ID %>" />
+            <input
+              type="hidden"
+              name="scenarioId"
+              value="<%= data.currentScenario ? data.currentScenario.ID : '' %>"
+            />
+            <input
+              type="hidden"
+              name="injectId"
+              value="<%= data.currentInject ? data.currentInject.ID : '' %>"
+            />
+
+            <label>
+              Immediate Decision
+              <textarea name="immediateDecision" required></textarea>
+            </label>
+
+            <label>
+              Rationale and Tradeoffs
+              <textarea name="rationale" required></textarea>
+            </label>
+
+            <label>
+              Theology of Mission Reflection
+              <textarea name="theology"></textarea>
+            </label>
+
+            <label>
+              Light Wheel Analysis
+              <textarea name="lightWheel"></textarea>
+            </label>
+
+            <label>
+              Localization and Power Shift
+              <textarea name="localization"></textarea>
+            </label>
+
+            <label>
+              Accountability to Affected Populations Reflection
+              <textarea name="aap"></textarea>
+            </label>
+
+            <div class="form-grid">
+              <label>
+                Risk A
+                <input name="riskA" type="text" />
+              </label>
+
+              <label>
+                Mitigation A
+                <input name="mitigationA" type="text" />
+              </label>
+
+              <label>
+                Risk B
+                <input name="riskB" type="text" />
+              </label>
+
+              <label>
+                Mitigation B
+                <input name="mitigationB" type="text" />
+              </label>
+            </div>
+
+            <button class="primary-button full" type="submit">Submit Decision</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Reflection Space</h2>
+
+          <form
+            action="/student/<%= participant.airtableId %>/reflection"
+            method="POST"
+            class="form-stack"
+          >
+            <input type="hidden" name="sessionId" value="<%= data.session.ID %>" />
+
+            <label>
+              Reflection Prompt
+              <input
+                name="prompt"
+                type="text"
+                value="How did the Light Wheel and integral mission shape your decision?"
+              />
+            </label>
+
+            <label>
+              Reflection Response
+              <textarea name="response" required></textarea>
+            </label>
+
+            <button class="secondary-button full" type="submit">Save Reflection</button>
+          </form>
+        </section>
+      </section>
+    </section>
+
+    <% } %>
+  </main>
+</body>
+</html>

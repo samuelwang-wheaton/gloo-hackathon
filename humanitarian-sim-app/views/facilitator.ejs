@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facilitator Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="app-background">
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <div class="section-kicker">Facilitator Dashboard</div>
+        <h1>Humanitarian Simulation Command Center</h1>
+        <p>
+          Generate, review, release, and evaluate a live humanitarian leadership simulation.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <a href="/" class="secondary-button">Home</a>
+        <a href="/join" class="secondary-button">Student Join</a>
+      </div>
+    </header>
+
+    <% if (!data.session) { %>
+      <section class="warning-panel">
+        <h2>No active session found</h2>
+        <p>
+          Set a Session record status to <strong>Live</strong>, <strong>Active</strong>, or <strong>Open</strong> in Airtable.
+        </p>
+      </section>
+    <% } else { %>
+
+    <section class="grid two-columns">
+      <div class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Source & AI Generation</h2>
+              <p>Upload source material and generate simulation drafts.</p>
+            </div>
+          </div>
+
+          <div class="upload-placeholder">
+            <strong>Upload source document placeholder</strong>
+            <span>PDF, DOCX, TXT, or research report</span>
+          </div>
+
+          <button class="primary-button full" type="button">
+            Generate Simulation with AI
+          </button>
+        </section>
+
+        <section class="panel">
+          <h2>Draft Review</h2>
+          <div class="review-grid">
+            <% draftCards.forEach(card => { %>
+              <article class="review-card">
+                <span><%= card.status %></span>
+                <h3><%= card.title %></h3>
+                <p><%= card.description %></p>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Student Progress</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Team</th>
+                  <th>Status</th>
+                  <th>Join Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% data.participants.forEach(p => { %>
+                  <tr>
+                    <td><%= p.Name %></td>
+                    <td><%= p.Role %></td>
+                    <td><%= p["Team Name"] || "—" %></td>
+                    <td><span class="status-pill"><%= p.Status || "Unknown" %></span></td>
+                    <td><%= p["Join Time"] || "—" %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="panel command-panel">
+          <h2>Live Simulation Controls</h2>
+
+          <div class="timer-box">
+            <span>Session Status</span>
+            <strong><%= data.session["Session Status"] %></strong>
+          </div>
+
+          <form action="/facilitator/session/update" method="POST" class="form-stack compact">
+            <label>
+              Session Status
+              <select name="sessionStatus">
+                <option value="Open">Open</option>
+                <option value="Live">Live</option>
+                <option value="Paused">Paused</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </label>
+
+            <label>
+              Current Scenario Number
+              <input
+                name="currentScenarioNumber"
+                type="number"
+                min="1"
+                value="<%= data.session['Current Scenario Number'] || 1 %>"
+              />
+            </label>
+
+            <button class="primary-button full" type="submit">Update Session</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Inject Release Controls</h2>
+          <div class="inject-list">
+            <% data.injects.forEach(inject => { %>
+              <article class="inject-item">
+                <div>
+                  <strong><%= inject["Order Number"] %>. <%= inject["Inject Title"] %></strong>
+                  <p><%= inject["Inject Content"] %></p>
+                  <span class="status-pill"><%= inject.Status || "Draft" %></span>
+                </div>
+
+                <div class="button-row">
+                  <% if (inject.Status !== "Released") { %>
+                    <form action="/facilitator/injects/<%= inject.airtableId %>/release" method="POST">
+                      <button class="small-button" type="submit">Release</button>
+                    </form>
+                  <% } %>
+
+                  <% if (inject.Status === "Released") { %>
+                    <form action="/facilitator/injects/<%= inject.airtableId %>/close" method="POST">
+                      <button class="small-button muted" type="submit">Close</button>
+                    </form>
+                  <% } %>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+
+        <section class="panel ai-panel">
+          <h2>AI Facilitator Suggestion</h2>
+          <p><%= aiSuggestion %></p>
+        </section>
+      </aside>
+    </section>
+
+    <% } %>
+  </main>
+</body>
+</html>
